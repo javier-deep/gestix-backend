@@ -9,7 +9,9 @@ router.post('/login', async (req, res, next) => {
     const { correo, contrasena } = req.body;
     if (!correo || !contrasena) return res.status(400).json({ message: 'Correo y contrasena son requeridos' });
 
-    const user = await User.findOne({ correo });
+    // Normalizar correo a minúsculas para evitar problemas de case-sensitivity
+    const correoNormalizado = correo.toLowerCase().trim();
+    const user = await User.findOne({ correo: correoNormalizado });
     if (!user) return res.status(401).json({ message: 'Credenciales inválidas' });
 
     // Support plaintext passwords or bcrypt hashes
