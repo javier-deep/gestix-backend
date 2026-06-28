@@ -10,6 +10,6 @@ const userSchema = new mongoose.Schema({
   permisos: { type: [Number], default: [] }
 });
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model('Usuario', userSchema, 'usuarios');
 
 module.exports = User;

@@ -1,9 +1,6 @@
 {
   "name": "gesticks-backend",
   "version": "1.0.0",
-  "engines": {
-    "node": ">=16"
-  },
   "description": "Backend API for Gesticks incident management",
   "main": "server.js",
   "scripts": {

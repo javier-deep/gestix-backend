@@ -9,38 +9,17 @@ router.post('/login', async (req, res, next) => {
     const { correo, contrasena } = req.body;
     if (!correo || !contrasena) return res.status(400).json({ message: 'Correo y contrasena son requeridos' });
 
-    // Normalizar correo y contraseña
-    const correoNormalizado = correo.toLowerCase().trim();
-    const contrasenaTrim = contrasena.trim();
-    
-    console.log('LOGIN ATTEMPT:', { correoNormalizado, contrasenaTrim });
-
-    // Buscar caso-insensitivo directamente
-    let user = await User.findOne({ correo: { $regex: `^${correoNormalizado}$`, $options: 'i' } });
-    
-    if (!user) {
-      console.log('Usuario NO encontrado:', correoNormalizado);
-      // Debug: mostrar todos los usuarios en BD
-      const allUsers = await User.find({}, { correo: 1, nombre: 1 });
-      console.log('Todos los usuarios en BD:', allUsers);
-      return res.status(401).json({ message: 'Credenciales inválidas' });
-    }
-    
-    console.log('Usuario encontrado:', { id: user.id, correo: user.correo });
-
-    console.log('Usuario encontrado, comparando contraseña...');
+    const user = await User.findOne({ correo });
+    if (!user) return res.status(401).json({ message: 'Credenciales inválidas' });
 
     // Support plaintext passwords or bcrypt hashes
     let passwordMatches = false;
     const stored = user.contrasena || '';
-    console.log('Stored:', stored, 'Enviada:', contrasenaTrim);
-    
     if (stored.startsWith('$2')) {
       const bcrypt = require('bcryptjs');
-      passwordMatches = await bcrypt.compare(contrasenaTrim, stored);
+      passwordMatches = await bcrypt.compare(contrasena, stored);
     } else {
-      passwordMatches = contrasenaTrim === stored;
-      console.log('Comparación texto plano - Match:', passwordMatches);
+      passwordMatches = contrasena === stored;
     }
 
     if (!passwordMatches) return res.status(401).json({ message: 'Credenciales inválidas' });
