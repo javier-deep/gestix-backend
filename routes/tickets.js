@@ -1,12 +1,27 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const Ticket = require('../models/Ticket');
 const { getNextSequence } = require('../models/Counter');
 const router = express.Router();
 
-// GET /tickets - list all tickets
-router.get('/', async (req, res, next) => {
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ message: 'Token requerido' });
+
+  const token = authHeader.split(' ')[1];
+  if (!token) return res.status(401).json({ message: 'Token inválido' });
+
+  jwt.verify(token, process.env.JWT_SECRET || 'secret', (err, decoded) => {
+    if (err) return res.status(401).json({ message: 'Token inválido' });
+    req.user = decoded;
+    next();
+  });
+}
+
+// GET /tickets - list tickets for authenticated user
+router.get('/', authenticateToken, async (req, res, next) => {
   try {
-    const tickets = await Ticket.find().sort({ id: 1 });
+    const tickets = await Ticket.find({ usuario_autor_id: req.user.id }).sort({ id: 1 });
     res.json(tickets);
   } catch (err) {
     next(err);
