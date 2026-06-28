@@ -15,19 +15,18 @@ router.post('/login', async (req, res, next) => {
     
     console.log('LOGIN ATTEMPT:', { correoNormalizado, contrasenaTrim });
 
-    // Primero buscar en minúsculas
-    let user = await User.findOne({ correo: correoNormalizado });
-    
-    // Si no encuentra, buscar case-insensitive en toda la BD
-    if (!user) {
-      user = await User.findOne({ correo: { $regex: `^${correoNormalizado}$`, $options: 'i' } });
-      if (user) console.log('Usuario encontrado con búsqueda case-insensitive');
-    }
+    // Buscar caso-insensitivo directamente
+    let user = await User.findOne({ correo: { $regex: `^${correoNormalizado}$`, $options: 'i' } });
     
     if (!user) {
       console.log('Usuario NO encontrado:', correoNormalizado);
+      // Debug: mostrar todos los usuarios en BD
+      const allUsers = await User.find({}, { correo: 1, nombre: 1 });
+      console.log('Todos los usuarios en BD:', allUsers);
       return res.status(401).json({ message: 'Credenciales inválidas' });
     }
+    
+    console.log('Usuario encontrado:', { id: user.id, correo: user.correo });
 
     console.log('Usuario encontrado, comparando contraseña...');
 
